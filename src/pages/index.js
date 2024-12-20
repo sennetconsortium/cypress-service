@@ -1,12 +1,12 @@
-import Image from "next/image";
 import { Geist, Geist_Mono } from "next/font/google";
 import { useEffect, useState } from "react";
 import Swal from 'sweetalert2'
 import AppNav from "@/components/nav";
 import Button from 'react-bootstrap/Button';
-import { AppSpinner } from "@/components/spinner";
+import AppSpinner from "@/components/spinner";
 import ListGroup from 'react-bootstrap/ListGroup';
 import Alert from 'react-bootstrap/Alert';
+import Footer from "@/components/footer";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -49,7 +49,7 @@ export default function Home() {
       }
       
     } catch(e) {
-      
+      console.error(e)
     }
   }
 
@@ -83,27 +83,29 @@ export default function Home() {
 
   const connect = () => {
     Swal.fire({
-      title: "Authenticate with a token and additional command line options",
+      title: "Authenticate with a display name and token.",
       html:
-      `<form id="auth-form" class="text-left"><label class="form-label" required for="display_name">User Display Name<span class="text-red">*</span></label><input id="display_name" required class="form-control mb-3" placeholder="required@domain.ext" value="${displayName}"> ` +
-      `<label class="form-label" for="token">Token<span class="text-red">*</span></label><textarea id="token" required class="form-control mb-3">${token}</textarea> ` +
-      `<input id="options" class="form-control" placeholder="Cli options" value="${cliOps}"></form>`,
+      `<form id="auth-form" class="text-left">
+        <label class="form-label" required for="display_name">User Display Name<span class="text-red">*</span></label>
+        <input id="display_name" required class="form-control mb-3" placeholder="required@domain.ext" value="${displayName}">
+        <label class="form-label" for="token">Token<span class="text-red">*</span></label>
+        <textarea id="token" required class="form-control mb-3">${token}</textarea>
+        <input id="options" class="form-control mb-1" placeholder="Cli options" value="${cliOps}">
+        <small class="text-muted">You may run a specific spec file. Example: <br> <code>-- --spec "cypress/e2e/provenance/page.cy.js"</code></small>
+      </form>`,
       showCancelButton: true,
       confirmButtonColor: '#ffc107',
       confirmButtonText: "Connect",
       showLoaderOnConfirm: true,
       preConfirm: async () => {
         try {
-          const $tok = document.getElementById("token")
-          const $name = document.getElementById("display_name")
-          const tok = $tok.value
-          const name = $name.value
+          const tok = document.getElementById("token").value
+          const name = $document.getElementById("display_name").value
           const ops = document.getElementById("options").value
           if (!tok.length || !name.length) {
             document.getElementById('auth-form').classList.add('was-validated')
             throw new Error('One or more required fields are empty');
           }
-        
           setIsLoading(true)
           setToken(tok)
           setDisplayName(name)
@@ -121,11 +123,7 @@ export default function Home() {
     })
   }
 
-  //list-inside list-decimal 
-
-  useEffect(() => {
-    
-  }, [])
+  useEffect(() => {}, [])
 
   return (
     <>
@@ -149,23 +147,7 @@ export default function Home() {
           </ListGroup.Item>}
         </ListGroup>
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://data.dev.sennetconsortium.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="World"
-            width={16}
-            height={16}
-          />
-          SenNet
-        </a>
-      </footer>
+     <Footer />
     </div>
     </>
   );

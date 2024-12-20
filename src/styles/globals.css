@@ -31,3 +31,7 @@ body {
 .text-red {
   color: rgb(185, 21, 21);
 }
+
+.swal2-title {
+  font-size: 1.375em !important;
+}
