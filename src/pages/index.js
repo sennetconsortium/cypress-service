@@ -100,7 +100,7 @@ export default function Home() {
       preConfirm: async () => {
         try {
           const tok = document.getElementById("token").value
-          const name = $document.getElementById("display_name").value
+          const name = document.getElementById("display_name").value
           const ops = document.getElementById("options").value
           if (!tok.length || !name.length) {
             document.getElementById('auth-form').classList.add('was-validated')
