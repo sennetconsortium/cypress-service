@@ -5,6 +5,8 @@ import Swal from 'sweetalert2'
 import AppNav from "@/components/nav";
 import Button from 'react-bootstrap/Button';
 import { AppSpinner } from "@/components/spinner";
+import ListGroup from 'react-bootstrap/ListGroup';
+import Alert from 'react-bootstrap/Alert';
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -17,31 +19,33 @@ const geistMono = Geist_Mono({
 });
 
 
-
 export default function Home() {
   const [log, setLog] = useState(null)
   const [loading, setIsLoading] = useState(false)
   const [isConnected, setIsConnected] = useState(false)
+  const [token, setToken] = useState('')
+  const [displayName, setDisplayName] = useState('')
+  const [cliOps, setCliOps] = useState('')
   let logs = []
 
   const formatLog = (msg) => {
     try {
       const report = JSON.parse(msg)
       if (report.message) {
-        return <span>{report.message}</span>
+        return <Alert>{report.message}</Alert>
       } else if (report.report?.complete) {
         setIsLoading(false)
-        return <span>Complete</span>
+        return <Alert variant={"success"}><span className="fs-6">Complete</span></Alert>
       } else {
         const j = report.report;
       let results = []
       for(let i = 0; i < j.tests.length; i++) {
         const passed = j.tests[i].state == 'passed'
-        results.push(<li key={'t--'+ i} className={passed ? 'text-green' : 'text-red'}>{j.tests[i].title.join(' > ')}</li>)
+        results.push(<ListGroup.Item key={'t--'+ i} variant={passed ? 'success' : 'danger'}>{j.tests[i].title.join(' > ')}</ListGroup.Item>)
       }
-      return <ul>
-        <li><h3>Tests {j.reporterStats.tests} Passes {j.reporterStats.passes} Failures {j.reporterStats.failures}</h3></li>
-        {results}</ul>
+      return <ListGroup variant="flush">
+        <ListGroup.Item><h6 className="mt-2">Tests {j.reporterStats.tests} Passes {j.reporterStats.passes} Failures {j.reporterStats.failures}</h6></ListGroup.Item>
+        {results}</ListGroup>
       }
       
     } catch(e) {
@@ -53,18 +57,18 @@ export default function Home() {
     logs.push(msg)
     let res = []
     for (let i = logs.length - 1; i > -1 ; i--) {
-      res.push(<li key={i}>{formatLog(logs[i])}</li>)
+      res.push(<ListGroup.Item key={i}>{formatLog(logs[i])}</ListGroup.Item>)
     }
     setLog(res)
   }
 
-  const handleSocket = (token = '') => {
+  const handleSocket = (auth) => {
 
     const socket = new WebSocket("ws://localhost:8765")
 
     // Connection opened
     socket.addEventListener("open", event => {
-      const msg = `🚀 Requesting Cypress reports ... Date: ${new Date()}. token=${token}`
+      const msg = `🚀 Requesting Cypress reports ... Date: ${new Date()}.\n params=${btoa(JSON.stringify(auth))}`
       socket.send(msg)
     });
 
@@ -79,19 +83,32 @@ export default function Home() {
 
   const connect = () => {
     Swal.fire({
-      title: "Enter a token for a user to perform tests under",
-      input: "text",
-      inputAttributes: {
-        autocapitalize: "off"
-      },
+      title: "Authenticate with a token and additional command line options",
+      html:
+      `<form id="auth-form" class="text-left"><label class="form-label" required for="display_name">User Display Name<span class="text-red">*</span></label><input id="display_name" required class="form-control mb-3" placeholder="required@domain.ext" value="${displayName}"> ` +
+      `<label class="form-label" for="token">Token<span class="text-red">*</span></label><textarea id="token" required class="form-control mb-3">${token}</textarea> ` +
+      `<input id="options" class="form-control" placeholder="Cli options" value="${cliOps}"></form>`,
       showCancelButton: true,
       confirmButtonColor: '#ffc107',
       confirmButtonText: "Connect",
       showLoaderOnConfirm: true,
-      preConfirm: async (token) => {
+      preConfirm: async () => {
         try {
+          const $tok = document.getElementById("token")
+          const $name = document.getElementById("display_name")
+          const tok = $tok.value
+          const name = $name.value
+          const ops = document.getElementById("options").value
+          if (!tok.length || !name.length) {
+            document.getElementById('auth-form').classList.add('was-validated')
+            throw new Error('One or more required fields are empty');
+          }
+        
           setIsLoading(true)
-          handleSocket(token)
+          setToken(tok)
+          setDisplayName(name)
+          setCliOps(ops)
+          handleSocket({token: tok, display_name: name, options: ops})
         } catch (error) {
           Swal.showValidationMessage(`
             Request failed: ${error}
@@ -121,16 +138,16 @@ export default function Home() {
   
       {loading && <AppSpinner />}
        
-        <ul className="list-disc text-sm  sm:text-left font-[family-name:var(--font-geist-mono)]">
+      <ListGroup as="ul" className="text-sm sm:text-left font-[family-name:var(--font-geist-mono)]">
           {log}
-         {!isConnected && <li className="mb-2">
+         {!isConnected && <ListGroup.Item className="mb-2">
             Click <Button variant="warning" onClick={connect}>Connect</Button> to establish a connection to
             <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
               data.dev.sennetconsortium.org
             </code>
             .
-          </li>}
-        </ul>
+          </ListGroup.Item>}
+        </ListGroup>
       </main>
       <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
         <a
