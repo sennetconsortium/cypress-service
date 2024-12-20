@@ -133,9 +133,7 @@ export default function Home() {
     >
       
       <main className="sm:items-start">
-  
       {loading && <AppSpinner />}
-       
       <ListGroup as="ul" className="text-sm sm:text-left font-[family-name:var(--font-geist-mono)]">
           {log}
          {!isConnected && <ListGroup.Item className="mb-2">
