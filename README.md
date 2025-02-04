@@ -13,6 +13,6 @@ You can start editing the page by modifying `pages/index.js`. The page auto-upda
 
 ## Docker 
 ```
-docker build -t cypress-portal-service .
-docker run -p 3001:3001 cypress-portal-service
+docker build -t cypress-service-gui .
+docker run -p 3001:3001 cypress-service-gui
 ```

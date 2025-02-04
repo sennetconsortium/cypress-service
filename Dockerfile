@@ -1,10 +1,10 @@
 FROM node:21
 
-WORKDIR /usr/cypress-service
+WORKDIR /usr/cypress-service-gui
 
 COPY . .
 
-WORKDIR /usr/cypress-service/app
+WORKDIR /usr/cypress-service-gui/app
 
 RUN npm install && \
 npm run build
